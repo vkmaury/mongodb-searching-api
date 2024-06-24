@@ -25,8 +25,8 @@ exports.getListings = async (req, res) => {
 
     try {
         const conditions = [
-            { minimum_nights: { $exists: true, $lte: numberOfNights } },
-            { maximum_nights: { $exists: true, $gte: numberOfNights } }
+            { $expr: { $lte: [{ $convert: { input: "$minimum_nights", to: "int", onError: null, onNull: null } }, numberOfNights] } },
+            { $expr: { $gte: [{ $convert: { input: "$maximum_nights", to: "int", onError: null, onNull: null } }, numberOfNights] } }
         ];
 
         if (property_type) {
@@ -57,7 +57,8 @@ exports.getListings = async (req, res) => {
 
         const pipeline = [
             { $match: matchStage },
-            { $project: { name: 1, property_type: 1, bed_type: 1, room_type: 1, accommodates: 1, _id: 0 } },
+            { $project: { name: 1, property_type: 1, bed_type: 1, room_type: 1, accommodates: 1,
+                minimum_nights: 1,maximum_nights: 1, _id: 0 } },
             { $sort: { property_type: 1 } },
             { $skip: (validPage - 1) * per_page },
             { $limit: parseInt(per_page) }
